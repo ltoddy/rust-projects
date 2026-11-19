@@ -26,7 +26,7 @@ impl<'a> Counter<'a> {
         let text = String::from_utf8(bytes).map_err(|_| Error::not_text(path.to_path_buf()))?;
 
         self.tokenizer
-            .encode(text.as_str(), false)
+            .encode_fast(text.as_str(), false)
             .map(|encoding| encoding.len())
             .map_err(|source| Error::encode(path.to_path_buf(), source))
     }
