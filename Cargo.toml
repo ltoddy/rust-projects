@@ -1,6 +1,6 @@
 [package]
 name = "tokstat"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 rust-version = "1.88"
 description = "统计目录下文本文件经 tokenizer 处理后的 token 量"
