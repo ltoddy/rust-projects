@@ -1,3 +1,11 @@
+mod args;
+
+use clap::Parser;
+
+use crate::args::Args;
+
 fn main() {
-    println!("Hello, world!");
+    let args = Args::parse();
+    let root = args.path();
+    println!("{}", root.display());
 }
