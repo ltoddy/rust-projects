@@ -21,8 +21,14 @@ pub enum Error {
         source: Box<dyn std::error::Error + Send + Sync>,
     },
 
-    #[error("遍历目录失败: {0}")]
-    Walk(#[from] ignore::Error),
+    #[error("非文本文件 {path}")]
+    NotText { path: PathBuf },
+
+    #[error("进度条模板无效")]
+    Template,
+
+    #[error("工作线程异常退出")]
+    Thread,
 }
 
 impl Error {
@@ -38,8 +44,16 @@ impl Error {
         Self::Encode { path, source }
     }
 
-    pub fn walk(source: ignore::Error) -> Self {
-        Self::Walk(source)
+    pub fn not_text(path: PathBuf) -> Self {
+        Self::NotText { path }
+    }
+
+    pub fn template() -> Self {
+        Self::Template
+    }
+
+    pub fn thread() -> Self {
+        Self::Thread
     }
 }
 

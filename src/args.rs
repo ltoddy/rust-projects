@@ -7,6 +7,14 @@ use clap::Parser;
 pub struct Args {
     #[arg(value_name = "PATH")]
     pub path: Option<PathBuf>,
+
+    #[arg(
+        long,
+        value_name = "N",
+        default_value_t = 20,
+        help = "最多展示的文件数，0 表示全部"
+    )]
+    pub top: usize,
 }
 
 impl Args {
