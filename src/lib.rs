@@ -116,9 +116,6 @@
 //! [`Error::Json`] carrying its line number, and the reader ends after that
 //! error, exactly like any other `FramedRead`.
 
-#![deny(missing_debug_implementations)]
-#![warn(missing_docs)]
-
 mod background;
 mod codec;
 mod fs;

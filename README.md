@@ -204,5 +204,4 @@ record; use `feed` plus a periodic `flush` if you are appending in bulk.
 
 ## License
 
-Licensed under either of [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0)
-or [MIT license](http://opensource.org/licenses/MIT) at your option.
+Licensed under the [MIT license](LICENSE).

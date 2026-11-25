@@ -1,3 +1,7 @@
+//! Integration tests for the public API.
+
+#![allow(clippy::unwrap_used)]
+
 use std::time::Duration;
 
 use serde::{Deserialize, Serialize};

@@ -7,7 +7,10 @@
 //! the rows: buffered appending versus flushing every record, and our framing
 //! versus calling `serde_json` directly.
 //!
-//! Append benchmarks reopen the file every iteration instead of truncating it,
+//! Append benchmarks keep one writer (and one file handle) open for the whole
+//! run, so a sample measures appends only rather than file creation.
+//!
+#![allow(clippy::unwrap_used)]
 
 use std::path::PathBuf;
 use std::sync::OnceLock;

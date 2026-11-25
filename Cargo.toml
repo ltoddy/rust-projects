@@ -2,8 +2,14 @@
 name = "tokio-jsonl"
 version = "0.1.0"
 edition = "2024"
-description = "Buffered, append-oriented JSON Lines (jsonl) reading and writing for tokio"
+rust-version = "1.85"
+description = "Buffered, append-oriented JSON Lines (jsonl) reading and writing for tokio, made by Aries"
+authors = ["liutao.rs <taoliu0509@gmail.com>"]
 license = "MIT"
+repository = "https://github.com/ltoddy/tokio-jsonl"
+keywords = ["jsonl", "json-lines", "tokio", "async", "logging"]
+categories = ["asynchronous", "encoding", "filesystem"]
+publish = ["crates-io"]
 
 [dependencies]
 bytes = "1"
@@ -23,3 +29,11 @@ tokio = { version = "1", features = ["macros", "rt-multi-thread", "io-util", "fs
 [[bench]]
 name = "throughput"
 harness = false
+
+[lints.rust]
+unsafe_code = "forbid"
+missing_docs = "warn"
+missing_debug_implementations = "deny"
+
+[lints.clippy]
+unwrap_used = "warn"
