@@ -1,0 +1,25 @@
+[package]
+name = "tokio-jsonl"
+version = "0.1.0"
+edition = "2024"
+description = "Buffered, append-oriented JSON Lines (jsonl) reading and writing for tokio"
+license = "MIT"
+
+[dependencies]
+bytes = "1"
+serde = "1"
+serde_json = "1"
+thiserror = "2"
+tokio = { version = "1", features = ["io-util", "fs", "sync", "time", "rt", "macros"] }
+tokio-stream = "0.1"
+tokio-util = { version = "0.7", features = ["codec"] }
+
+[dev-dependencies]
+divan = "0.1"
+serde = { version = "1", features = ["derive"] }
+tempfile = "3"
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "io-util", "fs", "sync", "time"] }
+
+[[bench]]
+name = "throughput"
+harness = false
