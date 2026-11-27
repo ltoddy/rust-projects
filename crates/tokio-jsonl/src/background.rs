@@ -75,9 +75,7 @@ pub struct JsonlHandle<T> {
 
 impl<T> Clone for JsonlHandle<T> {
     fn clone(&self) -> Self {
-        Self {
-            tx: self.tx.clone(),
-        }
+        Self { tx: self.tx.clone() }
     }
 }
 
@@ -87,36 +85,25 @@ impl<T: Serialize> JsonlHandle<T> {
     /// Returns [`Error::Io`] with `BrokenPipe` once the background task stopped,
     /// which happens if a previous write failed.
     pub async fn write(&self, record: T) -> Result<(), Error> {
-        self.tx
-            .send(Command::Write(record))
-            .await
-            .map_err(|_| task_gone())
+        self.tx.send(Command::Write(record)).await.map_err(|_| task_gone())
     }
 
     /// Waits until everything queued so far has been written and flushed.
     pub async fn flush(&self) -> Result<(), Error> {
         let (ack, done) = oneshot::channel();
-        self.tx
-            .send(Command::Flush(ack))
-            .await
-            .map_err(|_| task_gone())?;
+        self.tx.send(Command::Flush(ack)).await.map_err(|_| task_gone())?;
         done.await.map_err(|_| task_gone())?
     }
 }
 
 impl<T> std::fmt::Debug for JsonlHandle<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("JsonlHandle")
-            .field("closed", &self.tx.is_closed())
-            .finish_non_exhaustive()
+        f.debug_struct("JsonlHandle").field("closed", &self.tx.is_closed()).finish_non_exhaustive()
     }
 }
 
 fn task_gone() -> Error {
-    Error::Io(std::io::Error::new(
-        std::io::ErrorKind::BrokenPipe,
-        "background writer has stopped",
-    ))
+    Error::Io(std::io::Error::new(std::io::ErrorKind::BrokenPipe, "background writer has stopped"))
 }
 
 /// Appends `T` records to `path` from a background task, with the default
@@ -141,9 +128,7 @@ pub async fn spawn_writer_with<T>(
 where
     T: Serialize + Send + 'static,
 {
-    let writer = JsonlWriter::open(path)
-        .await?
-        .with_flush_threshold(config.flush_threshold);
+    let writer = JsonlWriter::open(path).await?.with_flush_threshold(config.flush_threshold);
     let (tx, mut rx) = mpsc::channel::<Command<T>>(config.queue_capacity);
 
     tokio::spawn(async move {

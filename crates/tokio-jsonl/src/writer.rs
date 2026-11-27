@@ -150,11 +150,7 @@ impl<T: Serialize> JsonlWriter<tokio::fs::File, T> {
     /// arbitrary. For guaranteed durability of every record, use one writer per
     /// file and call [`sync`](Self::sync).
     pub async fn open(path: impl AsRef<Path>) -> std::io::Result<Self> {
-        let file = tokio::fs::OpenOptions::new()
-            .create(true)
-            .append(true)
-            .open(path)
-            .await?;
+        let file = tokio::fs::OpenOptions::new().create(true).append(true).open(path).await?;
         Ok(Self::new(file))
     }
 

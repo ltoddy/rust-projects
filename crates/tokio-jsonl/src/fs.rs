@@ -2,7 +2,8 @@
 
 use std::path::Path;
 
-use serde::{Serialize, de::DeserializeOwned};
+use serde::Serialize;
+use serde::de::DeserializeOwned;
 use tokio::io::AsyncWrite;
 
 use crate::codec::Error;

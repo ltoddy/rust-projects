@@ -3,7 +3,8 @@
 use std::marker::PhantomData;
 
 use bytes::{BufMut, BytesMut};
-use serde::{Serialize, de::DeserializeOwned};
+use serde::Serialize;
+use serde::de::DeserializeOwned;
 use tokio_util::codec::{Decoder, Encoder};
 
 /// Errors produced while framing (and serializing) JSON Lines.
@@ -48,19 +49,14 @@ impl<T> Default for JsonlCodec<T> {
 
 impl<T> std::fmt::Debug for JsonlCodec<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("JsonlCodec")
-            .field("line", &self.line)
-            .finish_non_exhaustive()
+        f.debug_struct("JsonlCodec").field("line", &self.line).finish_non_exhaustive()
     }
 }
 
 impl<T> JsonlCodec<T> {
     /// Creates a codec positioned at the first line.
     pub fn new() -> Self {
-        Self {
-            line: 0,
-            _item: PhantomData,
-        }
+        Self { line: 0, _item: PhantomData }
     }
 
     /// Number of lines consumed so far (1-based, after the first record).
@@ -84,10 +80,7 @@ impl<T> JsonlCodec<T> {
     where
         T: DeserializeOwned,
     {
-        serde_json::from_slice(line).map_err(|source| Error::Json {
-            line: self.line,
-            source,
-        })
+        serde_json::from_slice(line).map_err(|source| Error::Json { line: self.line, source })
     }
 }
 

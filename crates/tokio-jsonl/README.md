@@ -201,7 +201,3 @@ while let Some(value) = codec.decode(&mut buf)? {
 Pass it to `FramedRead` / `FramedWrite` to get `Stream` / `Sink` access — that needs `futures-util` (for `StreamExt` and
 `SinkExt`) or `tokio-stream` (for `StreamExt`) in your own dependencies. Note that `SinkExt::send` flushes after every
 record; use `feed` plus a periodic `flush` if you are appending in bulk.
-
-## License
-
-Licensed under the [MIT license](LICENSE).

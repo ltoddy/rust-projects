@@ -14,10 +14,7 @@ struct Rec {
 }
 
 fn rec(id: u64, name: &str) -> Rec {
-    Rec {
-        id,
-        name: name.to_owned(),
-    }
+    Rec { id, name: name.to_owned() }
 }
 
 async fn collect(input: &[u8]) -> Vec<Result<Rec, Error>> {
@@ -33,11 +30,7 @@ async fn collect(input: &[u8]) -> Vec<Result<Rec, Error>> {
 async fn decodes_blank_lines_crlf_and_unterminated_tail() {
     let input: &[u8] = b"\n\r\n{\"id\":1,\"name\":\"a\"}\r\n{\"id\":2,\"name\":\"b\"}\n  \n{\"id\":3,\"name\":\"c\"}";
 
-    let got: Vec<Rec> = collect(input)
-        .await
-        .into_iter()
-        .map(Result::unwrap)
-        .collect();
+    let got: Vec<Rec> = collect(input).await.into_iter().map(Result::unwrap).collect();
 
     assert_eq!(got, vec![rec(1, "a"), rec(2, "b"), rec(3, "c")]);
 }
@@ -83,12 +76,8 @@ async fn write_all_truncates_and_read_all_roundtrips() {
     let dir = tempfile::tempdir().unwrap();
     let path = dir.path().join("one_shot.jsonl");
 
-    tokio_jsonl::write_all(&path, vec![rec(1, "a"), rec(2, "b")])
-        .await
-        .unwrap();
-    tokio_jsonl::write_all(&path, vec![rec(3, "c")])
-        .await
-        .unwrap();
+    tokio_jsonl::write_all(&path, vec![rec(1, "a"), rec(2, "b")]).await.unwrap();
+    tokio_jsonl::write_all(&path, vec![rec(3, "c")]).await.unwrap();
 
     let got: Vec<Rec> = tokio_jsonl::read_all(&path).await.unwrap();
     assert_eq!(got, vec![rec(3, "c")]);
@@ -99,33 +88,23 @@ async fn append_all_keeps_previous_records() {
     let dir = tempfile::tempdir().unwrap();
     let path = dir.path().join("one_shot_append.jsonl");
 
-    tokio_jsonl::write_all(&path, vec![rec(1, "a")])
-        .await
-        .unwrap();
-    tokio_jsonl::append_all(&path, vec![rec(2, "b"), rec(3, "c")])
-        .await
-        .unwrap();
+    tokio_jsonl::write_all(&path, vec![rec(1, "a")]).await.unwrap();
+    tokio_jsonl::append_all(&path, vec![rec(2, "b"), rec(3, "c")]).await.unwrap();
 
     let got: Vec<Rec> = tokio_jsonl::read_all(&path).await.unwrap();
     assert_eq!(got, vec![rec(1, "a"), rec(2, "b"), rec(3, "c")]);
 
     let content = tokio::fs::read_to_string(&path).await.unwrap();
-    assert!(
-        content.ends_with('\n'),
-        "the file must not be left unterminated"
-    );
+    assert!(content.ends_with('\n'), "the file must not be left unterminated");
 }
 
 #[tokio::test]
 async fn read_all_fails_on_the_first_bad_line() {
     let dir = tempfile::tempdir().unwrap();
     let path = dir.path().join("broken.jsonl");
-    tokio::fs::write(
-        &path,
-        b"{\"id\":1,\"name\":\"a\"}\nnot json\n{\"id\":2,\"name\":\"b\"}\n",
-    )
-    .await
-    .unwrap();
+    tokio::fs::write(&path, b"{\"id\":1,\"name\":\"a\"}\nnot json\n{\"id\":2,\"name\":\"b\"}\n")
+        .await
+        .unwrap();
 
     match tokio_jsonl::read_all::<Rec>(&path).await {
         Err(Error::Json { line, .. }) => assert_eq!(line, 2),
@@ -165,16 +144,9 @@ async fn appending_across_runs_keeps_previous_records() {
 
     let content = tokio::fs::read_to_string(&path).await.unwrap();
     assert_eq!(content.lines().count(), 3);
-    assert!(
-        content.ends_with('\n'),
-        "every record must end with a newline"
-    );
+    assert!(content.ends_with('\n'), "every record must end with a newline");
 
-    let got: Vec<Rec> = collect(content.as_bytes())
-        .await
-        .into_iter()
-        .map(Result::unwrap)
-        .collect();
+    let got: Vec<Rec> = collect(content.as_bytes()).await.into_iter().map(Result::unwrap).collect();
     assert_eq!(got, vec![rec(1, "a"), rec(2, "b"), rec(3, "c")]);
 }
 
@@ -183,10 +155,8 @@ async fn records_stay_in_memory_until_the_threshold_is_reached() {
     let dir = tempfile::tempdir().unwrap();
     let path = dir.path().join("buffered.jsonl");
 
-    let mut writer = JsonlWriter::<_, Rec>::open(&path)
-        .await
-        .unwrap()
-        .with_flush_threshold(64 * 1024);
+    let mut writer =
+        JsonlWriter::<_, Rec>::open(&path).await.unwrap().with_flush_threshold(64 * 1024);
     writer.write(&rec(1, "a")).await.unwrap();
     assert_eq!(tokio::fs::metadata(&path).await.unwrap().len(), 0);
     assert!(writer.buffered_bytes() > 0);
@@ -205,9 +175,7 @@ async fn background_writer_handles_concurrent_producers() {
         .flush_threshold(4096)
         .queue_capacity(16);
 
-    let handle = tokio_jsonl::spawn_writer_with::<Rec>(&path, config)
-        .await
-        .unwrap();
+    let handle = tokio_jsonl::spawn_writer_with::<Rec>(&path, config).await.unwrap();
 
     let mut workers = Vec::new();
     for task in 0..8u64 {

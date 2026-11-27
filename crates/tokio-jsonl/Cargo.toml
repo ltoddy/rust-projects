@@ -6,10 +6,10 @@ rust-version = "1.85"
 description = "Buffered, append-oriented JSON Lines (jsonl) reading and writing for tokio, made by Aries"
 authors = ["liutao.rs <taoliu0509@gmail.com>"]
 license = "MIT"
-repository = "https://github.com/ltoddy/tokio-jsonl"
+repository = "https://github.com/ltoddy/rust-projects"
+homepage = "https://github.com/ltoddy/rust-projects/tree/main/crates/tokio-jsonl"
 keywords = ["jsonl", "json-lines", "tokio", "async", "logging"]
 categories = ["asynchronous", "encoding", "filesystem"]
-publish = ["crates-io"]
 
 [dependencies]
 bytes = "1"

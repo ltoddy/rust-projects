@@ -51,21 +51,13 @@ fn ids() -> Vec<u64> {
 
 fn runtime() -> &'static Runtime {
     static RT: OnceLock<Runtime> = OnceLock::new();
-    RT.get_or_init(|| {
-        Builder::new_multi_thread()
-            .worker_threads(2)
-            .enable_all()
-            .build()
-            .unwrap()
-    })
+    RT.get_or_init(|| Builder::new_multi_thread().worker_threads(2).enable_all().build().unwrap())
 }
 
 /// A file inside a temp dir that lives for the whole benchmark run.
 fn bench_file(name: &str) -> PathBuf {
     static DIR: OnceLock<tempfile::TempDir> = OnceLock::new();
-    DIR.get_or_init(|| tempfile::tempdir().unwrap())
-        .path()
-        .join(name)
+    DIR.get_or_init(|| tempfile::tempdir().unwrap()).path().join(name)
 }
 
 /// Writers that live for the whole run, so that opening the file is not part
@@ -75,9 +67,8 @@ macro_rules! shared_writer {
         fn $name() -> &'static Mutex<JsonlWriter<tokio::fs::File, Record>> {
             static WRITER: OnceLock<Mutex<JsonlWriter<tokio::fs::File, Record>>> = OnceLock::new();
             WRITER.get_or_init(|| {
-                let writer = runtime()
-                    .block_on(JsonlWriter::<_, Record>::open(bench_file($file)))
-                    .unwrap();
+                let writer =
+                    runtime().block_on(JsonlWriter::<_, Record>::open(bench_file($file))).unwrap();
                 Mutex::new(writer)
             })
         }
@@ -156,9 +147,7 @@ fn append_flush_each(bencher: Bencher) {
 fn handle() -> &'static JsonlHandle<Record> {
     static HANDLE: OnceLock<JsonlHandle<Record>> = OnceLock::new();
     HANDLE.get_or_init(|| {
-        runtime()
-            .block_on(spawn_writer::<Record>(bench_file("handle.jsonl")))
-            .unwrap()
+        runtime().block_on(spawn_writer::<Record>(bench_file("handle.jsonl"))).unwrap()
     })
 }
 
@@ -189,16 +178,14 @@ fn decode(bencher: Bencher) {
     let blob = encoded();
     let mut codec = JsonlCodec::<Record>::new();
 
-    bencher
-        .with_inputs(|| BytesMut::from(blob))
-        .bench_local_values(|mut buf| {
-            let mut count = 0;
-            while let Some(rec) = codec.decode(&mut buf).unwrap() {
-                black_box(&rec);
-                count += 1;
-            }
-            assert_eq!(count, RECORDS);
-        });
+    bencher.with_inputs(|| BytesMut::from(blob)).bench_local_values(|mut buf| {
+        let mut count = 0;
+        while let Some(rec) = codec.decode(&mut buf).unwrap() {
+            black_box(&rec);
+            count += 1;
+        }
+        assert_eq!(count, RECORDS);
+    });
 }
 
 /// Baseline for [`decode`]: the same payload straight through `serde_json`.

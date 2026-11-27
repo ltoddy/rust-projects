@@ -26,9 +26,7 @@ impl<R, T> std::fmt::Debug for JsonlReader<R, T> {
 impl<R: AsyncRead + Unpin, T: DeserializeOwned> JsonlReader<R, T> {
     /// Wraps `reader`, decoding one JSON value per line.
     pub fn new(reader: R) -> Self {
-        Self {
-            inner: FramedRead::with_capacity(reader, JsonlCodec::new(), DEFAULT_READ_CAPACITY),
-        }
+        Self { inner: FramedRead::with_capacity(reader, JsonlCodec::new(), DEFAULT_READ_CAPACITY) }
     }
 
     /// Returns the next record, or `None` at the end of input.
