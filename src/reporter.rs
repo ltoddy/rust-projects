@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::ops::AddAssign;
 use std::sync::mpsc::Receiver;
 
 use crate::calculator::Detail;
@@ -14,22 +13,17 @@ impl Reporter {
     }
 
     pub fn research(&self) -> Report {
-        let mut kinds = HashMap::<&str, Detail>::new();
-        let mut summary = Detail::new("Sum", 0, 0, 0, 0, 0);
+        let mut kinds = HashMap::<&'static str, Detail>::new();
+        let mut summary =
+            Detail { language: "Sum", files: 0, bytes: 0, blank: 0, comment: 0, code: 0 };
 
         for detail in &self.receiver {
-            summary += detail;
+            summary += &detail;
 
-            kinds
-                .entry(detail.language)
-                .and_modify(|acc| acc.add_assign(detail))
-                .or_insert(detail);
+            kinds.entry(detail.language).and_modify(|acc| *acc += &detail).or_insert(detail);
         }
 
-        Report {
-            sections: kinds.into_iter().map(|(_, value)| value).collect(),
-            summary,
-        }
+        Report { sections: kinds.into_values().collect(), summary }
     }
 }
 

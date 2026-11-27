@@ -1,6 +1,5 @@
 mod calculator;
 mod engine;
-mod error;
 mod executor;
 mod explorer;
 mod options;
@@ -13,41 +12,46 @@ use std::env::current_dir;
 use std::fs;
 use std::time::Instant;
 
-use structopt::StructOpt;
+use clap::Parser;
 
 use crate::engine::Engine;
-use crate::options::{Options, SortBy};
-use crate::pretty_printer::pretty_print;
+use crate::options::{Options, Output, SortBy};
+use crate::pretty_printer::{pretty_print, print_markdown};
 use crate::util::compare;
-
-type Result<T> = std::result::Result<T, crate::error::Error>;
 
 #[global_allocator]
 static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
 
 fn main() {
     let now = Instant::now();
+    let options = Options::parse();
 
-    #[rustfmt::skip]
-    let Options { sort_by, order_by, entry, ignore_file, .. } = Options::from_args();
-
-    let entry = entry.and_then(|entry| fs::canonicalize(entry).ok()).unwrap_or_else(|| {
+    let entry = options.entry.and_then(|entry| fs::canonicalize(entry).ok()).unwrap_or_else(|| {
         eprintln!("No directory specified, so use current directory as entry.\n");
         current_dir().expect("current directory does not exist")
     });
 
-    let machine = Engine::new(entry, ignore_file);
-    let mut report = machine.serve();
-    report.sections.sort_by(|prev, next| match sort_by {
-        SortBy::Language => compare(prev.language, next.language, order_by),
-        SortBy::Files => compare(prev.files, next.files, order_by),
-        SortBy::Size => compare(prev.bytes, next.bytes, order_by),
-        SortBy::Blank => compare(prev.blank, next.blank, order_by),
-        SortBy::Comment => compare(prev.comment, next.comment, order_by),
-        SortBy::Code => compare(prev.code, next.code, order_by),
+    let engine = Engine::new(entry, options.ignore_file);
+    let mut report = engine.serve();
+
+    report.sections.sort_by(|prev, next| {
+        let ordering = match options.sort_by {
+            SortBy::Language => compare(prev.language, next.language, options.order_by),
+            SortBy::Files => compare(prev.files, next.files, options.order_by),
+            SortBy::Size => compare(prev.bytes, next.bytes, options.order_by),
+            SortBy::Blank => compare(prev.blank, next.blank, options.order_by),
+            SortBy::Comment => compare(prev.comment, next.comment, options.order_by),
+            SortBy::Code => compare(prev.code, next.code, options.order_by),
+        };
+
+        // Keep the report stable when the sorted fields are equal.
+        ordering.then_with(|| prev.language.cmp(next.language))
     });
 
     let elapsed = now.elapsed();
 
-    pretty_print(report, elapsed);
+    match options.output {
+        Output::Terminal => pretty_print(&report, elapsed),
+        Output::Markdown => print_markdown(&report, elapsed),
+    }
 }

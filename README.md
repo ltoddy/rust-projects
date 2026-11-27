@@ -1,10 +1,14 @@
-# cloc-rs
+# rcloc (cloc-rs)
 
 Count, or compute differences of, lines of source code and comments fastly.
 
 ## Overview
 
 ![](https://img.vim-cn.com/1b/5f012cb8f2e45001ae20d18310ec0da474fff3.jpg)
+
+### Requirements
+
+- Rust 1.88 or newer (2024 edition)
 
 ### Usage
 
@@ -41,6 +45,32 @@ macbox :: github/kubernetes » time rcloc .
 rcloc .  23.21s user 153.47s system 239% cpu 1:13.72 total
 ```
 
+### Options
+
+```
+$ rcloc --help
+Count, or compute differences of, lines of source code and comments.
+
+Usage: rcloc [OPTIONS] [path]
+
+Arguments:
+  [path]  Directory to analyse, defaults to the current directory
+
+Options:
+      --output <OUTPUT>            Format of the report [default: terminal] [possible values: terminal, markdown]
+      --sort-by <SORT_BY>          Field used to sort the report [default: language] [possible values: language, files, size, blank, comment, code]
+      --order-by <ORDER_BY>        Sort direction of the report [default: asc] [possible values: asc, desc]
+      --ignore-file <IGNORE_FILE>  File listing paths (one per line) to exclude from the report
+  -h, --help                       Print help
+  -V, --version                    Print version
+```
+
+Markdown 报告:
+
+```
+$ rcloc --output markdown .
+```
+
 ### Install
 
 ```
@@ -56,7 +86,7 @@ $ cargo install --path .
 
 ### How to contribute(support for more language)
 
-- 在`src/calculator.rs`文件中, 有一个在`lazy_static`中的全局变量: `MANAGER`,内部有一个宏
+- 在`src/calculator.rs`文件中, 有一个 `static MANAGER: LazyLock<Manager>` 全局变量, 内部有一个宏
 
 > language!($name, $ext, $single, $multi)
 
@@ -69,11 +99,11 @@ $ cargo install --path .
 
 ### TODO
 
-- [ ] 统计结果可以生成Markdown, Html文件(由参数--output=(markdown)|(html) 指定)
+- [x] 统计结果可以生成Markdown文件(由参数--output=markdown 指定)
 - [ ] 去除代码中使用的`unwrap()`
 - [ ] 去除代码中的expect, 更细粒度的错误处理
 - [ ] 美化输出
-- [ ] 完善测试
+- [x] 完善测试(核心计数逻辑已有单元测试)
 - [ ] 完善文档
 - [ ] 压榨性能
 - [ ] ...

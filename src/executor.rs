@@ -1,4 +1,4 @@
-use std::sync::mpsc::{sync_channel, Receiver, SyncSender};
+use std::sync::mpsc::{Receiver, SyncSender, sync_channel};
 use std::sync::{Arc, Mutex};
 use std::thread;
 
@@ -41,7 +41,8 @@ pub struct ThreadPoolExecutor {
 
 impl ThreadPoolExecutor {
     pub fn new() -> Self {
-        Self::with_capacity(num_cpus::get() * 5)
+        let parallelism = thread::available_parallelism().map_or(1, std::num::NonZeroUsize::get);
+        Self::with_capacity(parallelism * 5)
     }
 
     pub fn with_capacity(capacity: usize) -> Self {
@@ -64,9 +65,7 @@ impl ThreadPoolExecutor {
     {
         let job = Message::Job(Box::new(f));
 
-        self.sender
-            .send(job)
-            .expect("ThreadPoolExecutor receiver has disconnected");
+        self.sender.send(job).expect("ThreadPoolExecutor receiver has disconnected");
     }
 }
 

@@ -23,32 +23,35 @@ impl Engine {
         let (calculator, detail_receiver) = Calculator::new(filename_receiver);
         let reporter = Reporter::new(detail_receiver);
 
-        Self {
-            entry,
-            explorer,
-            calculator,
-            reporter,
-        }
+        Self { entry, explorer, calculator, reporter }
     }
 
     pub fn serve(self) -> Report {
-        #[rustfmt::skip]
         let Self { entry, mut explorer, calculator, reporter } = self;
-        let spinner = Spinner::new();
+        let mut spinner = Spinner::new();
 
         spinner.start();
-        spawn(move || explorer.walk_directory(entry));
-        spawn(|| calculator.calculate());
+        spawn(move || explorer.walk_directory(&entry));
+        spawn(move || calculator.calculate());
         let report = reporter.research();
         spinner.stop();
 
         report
     }
 
-    #[rustfmt::skip]
     fn read_ignore_list(filename: Option<PathBuf>) -> Option<Vec<PathBuf>> {
-        filename
-            .and_then(|filename| fs::read_to_string(filename).ok())
-            .map(|content| content.lines().map(|line| line.trim_start_matches("/")).filter_map(|path| fs::canonicalize(path).ok()).collect())
+        filename.and_then(|filename| fs::read_to_string(filename).ok()).map(|content| {
+            content
+                .lines()
+                .map(str::trim)
+                .filter(|line| !line.is_empty())
+                .filter_map(Self::canonicalize_ignore_entry)
+                .collect()
+        })
+    }
+
+    /// Entries are usually written relative to the working directory, but absolute paths are accepted as well.
+    fn canonicalize_ignore_entry(entry: &str) -> Option<PathBuf> {
+        fs::canonicalize(entry).or_else(|_| fs::canonicalize(entry.trim_start_matches('/'))).ok()
     }
 }

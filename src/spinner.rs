@@ -1,55 +1,57 @@
-#![allow(clippy::mutex_atomic)]
-use std::io::prelude::*;
-use std::io::stdout;
-use std::sync::{Arc, Condvar, Mutex};
-use std::thread::{sleep, spawn};
+use std::io::{IsTerminal, Write, stdout};
+use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::thread::{self, JoinHandle};
 use std::time::Duration;
+
+const FRAMES: [char; 4] = ['|', '/', '-', '\\'];
+const INTERVAL: Duration = Duration::from_millis(50);
 
 #[derive(Debug, Default)]
 pub struct Spinner {
-    cvar: Arc<Condvar>,
-    lock: Arc<Mutex<bool>>,
+    requested_stop: Arc<AtomicBool>,
+    handle: Option<JoinHandle<()>>,
 }
 
 impl Spinner {
     pub fn new() -> Self {
-        Self {
-            cvar: Arc::new(Condvar::new()),
-            lock: Arc::new(Mutex::new(false)),
-        }
+        Self::default()
     }
 
-    pub fn start(&self) {
-        let Self { cvar, lock } = self;
-        let pair = (Arc::clone(&lock), Arc::clone(&cvar));
-        spawn(move || {
-            let mut out = stdout();
-            for c in vec!['|', '/', '-', '\\'].iter().cycle() {
-                let status = format!("{} computing", c);
+    pub fn start(&mut self) {
+        // Keep the output clean when it is redirected to a file or a pipe.
+        if !stdout().is_terminal() {
+            return;
+        }
+
+        let requested_stop = Arc::clone(&self.requested_stop);
+        self.handle = Some(thread::spawn(move || {
+            let mut out = stdout().lock();
+            for frame in FRAMES.iter().cycle() {
+                if requested_stop.load(Ordering::Relaxed) {
+                    break;
+                }
+
+                let status = format!("{frame} computing");
                 let _ = out.write_all(status.as_bytes());
                 let _ = out.flush();
-                let _ = out.write_all("\x08".repeat(status.len()).as_bytes());
-                sleep(Duration::from_millis(50));
-
-                let (lock, cvar) = &pair;
-
-                if let Ok(mut started) = lock.lock() {
-                    if let Ok(result) = cvar.wait_timeout(started, Duration::from_millis(100)) {
-                        started = result.0;
-                        if *started {
-                            break;
-                        }
-                    }
-                }
+                let _ = out.write_all("\u{8}".repeat(status.len()).as_bytes());
+                thread::sleep(INTERVAL);
             }
-        });
+        }));
     }
 
-    pub fn stop(&self) {
-        let Self { cvar, lock } = self;
-        if let Ok(mut started) = lock.lock() {
-            *started = true;
-            cvar.notify_one();
+    pub fn stop(&mut self) {
+        self.requested_stop.store(true, Ordering::Relaxed);
+
+        if let Some(handle) = self.handle.take() {
+            let _ = handle.join();
         }
+    }
+}
+
+impl Drop for Spinner {
+    fn drop(&mut self) {
+        self.stop();
     }
 }

@@ -1,6 +1,6 @@
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::sync::mpsc::{sync_channel, Receiver, SyncSender};
+use std::sync::mpsc::{Receiver, SyncSender, sync_channel};
 
 pub struct Explorer {
     ignore_list: Option<Vec<PathBuf>>,
@@ -14,33 +14,24 @@ impl Explorer {
         (explorer, receiver)
     }
 
-    pub fn walk_directory<P: AsRef<Path>>(&mut self, entry: P) {
-        self.walk_dir_impl(entry.as_ref());
-    }
-
-    fn walk_dir_impl(&mut self, path: &Path) {
-        if path.is_file() && self.is_not_ignore_file(path) {
-            let _ = self.sender.send(PathBuf::from(path));
-        } else if path.is_dir() {
-            if let Ok(entries) = fs::read_dir(path) {
-                entries
-                    .filter_map(|entry| entry.ok())
-                    .for_each(|entry| self.walk_dir_impl(&entry.path()));
+    pub fn walk_directory(&mut self, entry: &Path) {
+        if entry.is_file() {
+            if self.is_not_ignore_file(entry) {
+                let _ = self.sender.send(entry.to_path_buf());
+            }
+        } else if entry.is_dir()
+            && let Ok(entries) = fs::read_dir(entry)
+        {
+            for entry in entries.flatten() {
+                self.walk_directory(&entry.path());
             }
         }
     }
 
-    #[inline]
-    fn is_not_ignore_file<P: AsRef<Path>>(&self, filename: P) -> bool {
-        self.is_not_ignore_file_impl(filename.as_ref())
-    }
-
-    #[inline]
-    fn is_not_ignore_file_impl(&self, filename: &Path) -> bool {
-        if let Some(ignore_list) = &self.ignore_list {
-            return ignore_list.iter().all(|path| !filename.starts_with(path));
+    fn is_not_ignore_file(&self, filename: &Path) -> bool {
+        match &self.ignore_list {
+            Some(ignore_list) => ignore_list.iter().all(|path| !filename.starts_with(path)),
+            None => true,
         }
-
-        true
     }
 }
