@@ -1,7 +1,5 @@
 //! Buffered, append-oriented writing of JSON Lines.
 
-use std::path::Path;
-
 use bytes::BytesMut;
 use serde::Serialize;
 use tokio::io::{AsyncWrite, AsyncWriteExt};
@@ -22,8 +20,8 @@ pub const DEFAULT_FLUSH_THRESHOLD: usize = 64 * 1024;
 ///
 /// Because of that buffering, **data buffered but not yet flushed is lost if
 /// the writer is dropped**. Call [`flush`](Self::flush) or
-/// [`close`](Self::close) when shutting down, or use [`crate::spawn_writer`],
-/// which flushes on an interval and on exit.
+/// [`close`](Self::close) when shutting down, or use `spawn_writer` (with the
+/// `background` feature), which flushes on an interval and on exit.
 pub struct JsonlWriter<W, T> {
     writer: W,
     codec: JsonlCodec<T>,
@@ -129,9 +127,10 @@ impl<W: AsyncWrite + Unpin, T: Serialize> JsonlWriter<W, T> {
     }
 }
 
+#[cfg(feature = "fs")]
 impl<T: Serialize> JsonlWriter<tokio::fs::File, T> {
     /// Creates (or truncates) `path` and writes a new jsonl file.
-    pub async fn create(path: impl AsRef<Path>) -> std::io::Result<Self> {
+    pub async fn create(path: impl AsRef<std::path::Path>) -> std::io::Result<Self> {
         let file = tokio::fs::OpenOptions::new()
             .create(true)
             .write(true)
@@ -149,7 +148,7 @@ impl<T: Serialize> JsonlWriter<tokio::fs::File, T> {
     /// not interleave *within* a write, though ordering between them is
     /// arbitrary. For guaranteed durability of every record, use one writer per
     /// file and call [`sync`](Self::sync).
-    pub async fn open(path: impl AsRef<Path>) -> std::io::Result<Self> {
+    pub async fn open(path: impl AsRef<std::path::Path>) -> std::io::Result<Self> {
         let file = tokio::fs::OpenOptions::new().create(true).append(true).open(path).await?;
         Ok(Self::new(file))
     }

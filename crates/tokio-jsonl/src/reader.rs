@@ -1,7 +1,5 @@
 //! Reading JSON Lines from an [`AsyncRead`].
 
-use std::path::Path;
-
 use serde::de::DeserializeOwned;
 use tokio::io::AsyncRead;
 use tokio_stream::StreamExt;
@@ -52,9 +50,10 @@ impl<R, T> JsonlReader<R, T> {
     }
 }
 
+#[cfg(feature = "fs")]
 impl<T: DeserializeOwned> JsonlReader<tokio::fs::File, T> {
     /// Opens `path` for buffered reading.
-    pub async fn open(path: impl AsRef<Path>) -> std::io::Result<Self> {
+    pub async fn open(path: impl AsRef<std::path::Path>) -> std::io::Result<Self> {
         let file = tokio::fs::File::open(path).await?;
         Ok(Self::new(file))
     }
