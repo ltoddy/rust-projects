@@ -22,10 +22,10 @@ Both features are on by default. The codec and the in-memory reader / writer nee
 `default-features = false` still gives you `JsonlCodec`, `JsonlReader` and `JsonlWriter` over any `AsyncRead` /
 `AsyncWrite`.
 
-| Feature      | Adds                                                                                                     | Pulls in                                               |
-|--------------|----------------------------------------------------------------------------------------------------------|--------------------------------------------------------|
-| `fs`         | `JsonlReader::open`, `JsonlWriter::open` / `create` / `sync`, `read_all` / `write_all` / `append_all`     | `tokio/fs`                                             |
-| `background` | `spawn_writer`, `spawn_writer_with`, `WriterConfig`, `JsonlHandle` (implies `fs`)                        | `tokio/rt`, `tokio/sync`, `tokio/time`, `tokio/macros` |
+| Feature      | Adds                                                                                                  | Pulls in                                               |
+|--------------|-------------------------------------------------------------------------------------------------------|--------------------------------------------------------|
+| `fs`         | `JsonlReader::open`, `JsonlWriter::open` / `create` / `sync`, `read_all` / `write_all` / `append_all` | `tokio/fs`                                             |
+| `background` | `spawn_writer`, `spawn_writer_with`, `WriterConfig`, `JsonlHandle` (implies `fs`)                     | `tokio/rt`, `tokio/sync`, `tokio/time`, `tokio/macros` |
 
 ```toml
 tokio-jsonl = { version = "0.1", default-features = false }

@@ -1,12 +1,12 @@
 [package]
 name = "tokstat"
-version = "0.1.3"
+version = "0.1.4"
 edition = "2024"
 description = "统计目录下文本文件经 tokenizer 处理后的 token 量"
-license = "MIT"
-repository = "https://github.com/ltoddy/rust-projects"
-homepage = "https://github.com/ltoddy/rust-projects/tree/main/apps/tokstat"
 readme = "README.md"
+homepage = "https://github.com/ltoddy/rust-projects/tree/main/apps/tokstat"
+repository = "https://github.com/ltoddy/rust-projects"
+license = "MIT"
 keywords = ["tokenizer", "token", "llm", "cloc"]
 categories = ["command-line-utilities", "development-tools"]
 exclude = ["AGENTS.md"]
