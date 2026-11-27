@@ -1,9 +1,8 @@
 [package]
-name = "rcloc"
-version = "0.8.0"
+name = "cloc"
+version = "0.1.5"
 authors = ["ltoddy <taoliu0509@gmail.com>"]
 edition = "2024"
-rust-version = "1.88"
 license = "MIT"
 readme = "README.md"
 keywords = ["cloc", "tokei", "lines-of-code", "statistics", "cli"]
@@ -21,13 +20,3 @@ thiserror = "2.0"
 
 [lints.clippy]
 all = "warn"
-
-[profile.dev]
-debug = 0
-
-[profile.release]
-lto = true
-codegen-units = 1
-opt-level = "z"
-strip = true
-panic = "abort"
