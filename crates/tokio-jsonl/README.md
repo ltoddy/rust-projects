@@ -16,6 +16,24 @@ serde = { version = "1", features = ["derive"] }
 
 Requires Rust 1.85+ (edition 2024).
 
+## Cargo features
+
+Both features are on by default. The codec and the in-memory reader / writer need neither, so
+`default-features = false` still gives you `JsonlCodec`, `JsonlReader` and `JsonlWriter` over any `AsyncRead` /
+`AsyncWrite`.
+
+| Feature      | Adds                                                                                                     | Pulls in                                               |
+|--------------|----------------------------------------------------------------------------------------------------------|--------------------------------------------------------|
+| `fs`         | `JsonlReader::open`, `JsonlWriter::open` / `create` / `sync`, `read_all` / `write_all` / `append_all`     | `tokio/fs`                                             |
+| `background` | `spawn_writer`, `spawn_writer_with`, `WriterConfig`, `JsonlHandle` (implies `fs`)                        | `tokio/rt`, `tokio/sync`, `tokio/time`, `tokio/macros` |
+
+```toml
+tokio-jsonl = { version = "0.1", default-features = false }
+tokio-jsonl = { version = "0.1", default-features = false, features = ["fs"] }
+```
+
+The first line is the in-memory-only build, the second adds the file helpers.
+
 ## Appending to a file
 
 `JsonlWriter::open` opens in append mode: an existing file is extended, a missing one is created. Records are buffered,
@@ -48,8 +66,8 @@ socket, a pipe, or an in-memory buffer.
 
 ## Appending from many tasks
 
-`spawn_writer` hands the file to a background task and gives you a cheap, cloneable handle. The task flushes on a timer
-and applies backpressure through a bounded queue.
+`spawn_writer` (the `background` feature) hands the file to a background task and gives you a cheap, cloneable handle.
+The task flushes on a timer and applies backpressure through a bounded queue.
 
 ```rust
 use serde::Serialize;

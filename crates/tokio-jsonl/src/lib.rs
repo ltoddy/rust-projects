@@ -1,3 +1,10 @@
+// A crate built with `default-features = false` is missing the items the docs
+// link to; that is expected, so do not warn about the resulting dead links.
+#![cfg_attr(
+    any(not(feature = "fs"), not(feature = "background")),
+    allow(rustdoc::broken_intra_doc_links)
+)]
+
 //! JSON Lines ([jsonl](https://jsonlines.org/)) for the tokio ecosystem.
 //!
 //! The crate is built around [`tokio_util::codec`], so everything is a thin
@@ -19,9 +26,12 @@
 //!
 //! # #[tokio::main]
 //! # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+//! # #[cfg(feature = "fs")]
+//! # {
 //! let mut writer = tokio_jsonl::JsonlWriter::<_, Event>::open("events.jsonl").await?;
 //! writer.write(&Event { level: "info", msg: "started" }).await?;
 //! writer.close().await?;
+//! # }
 //! # Ok(())
 //! # }
 //! ```
@@ -43,6 +53,8 @@
 //!
 //! # #[tokio::main]
 //! # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+//! # #[cfg(feature = "background")]
+//! # {
 //! let handle = tokio_jsonl::spawn_writer::<Metric>("metrics.jsonl").await?;
 //! let worker = handle.clone();
 //! tokio::spawn(async move {
@@ -52,6 +64,7 @@
 //!         .unwrap();
 //! });
 //! handle.flush().await?;
+//! # }
 //! # Ok(())
 //! # }
 //! ```
@@ -74,11 +87,14 @@
 //!
 //! # #[tokio::main]
 //! # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+//! # #[cfg(feature = "fs")]
+//! # {
 //! tokio_jsonl::write_all("events.jsonl", vec![Event { level: "info".into() }]).await?;
 //! tokio_jsonl::append_all("events.jsonl", vec![Event { level: "warn".into() }]).await?;
 //!
 //! let all: Vec<Event> = tokio_jsonl::read_all("events.jsonl").await?;
 //! assert_eq!(all.len(), 2);
+//! # }
 //! # Ok(())
 //! # }
 //! ```
@@ -98,11 +114,14 @@
 //!
 //! # #[tokio::main]
 //! # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+//! # #[cfg(feature = "fs")]
+//! # {
 //! let mut reader = tokio_jsonl::JsonlReader::<_, Event>::open("events.jsonl").await?;
 //! while let Some(event) = reader.next().await {
 //!     let event = event?;
 //!     println!("{}", event.level);
 //! }
+//! # }
 //! # Ok(())
 //! # }
 //! ```
@@ -115,15 +134,33 @@
 //! any newline is held in memory as one long line. A bad line surfaces once as
 //! [`Error::Json`] carrying its line number, and the reader ends after that
 //! error, exactly like any other `FramedRead`.
+//!
+//! # Cargo features
+//!
+//! Everything is on by default. The codec and the in-memory reader / writer
+//! need no features at all, so `default-features = false` keeps only
+//! `JsonlCodec`, [`JsonlReader`] and [`JsonlWriter`] over any `AsyncRead` /
+//! `AsyncWrite`.
+//!
+//! - `fs`: path-based constructors (`JsonlReader::open`, `JsonlWriter::open`,
+//!   `create`, `sync`) and the one-shot [`read_all`] / [`write_all`] /
+//!   [`append_all`] helpers. Pulls in `tokio/fs`.
+//! - `background`: [`spawn_writer`], `spawn_writer_with`, [`WriterConfig`] and
+//!   [`JsonlHandle`]. Implies `fs`, and adds `tokio/rt`, `tokio/sync`,
+//!   `tokio/time` and `tokio/macros`.
 
+#[cfg(feature = "background")]
 mod background;
 mod codec;
+#[cfg(feature = "fs")]
 mod fs;
 mod reader;
 mod writer;
 
+#[cfg(feature = "background")]
 pub use background::{JsonlHandle, WriterConfig, spawn_writer, spawn_writer_with};
 pub use codec::{Error, JsonlCodec};
+#[cfg(feature = "fs")]
 pub use fs::{append_all, read_all, write_all};
 pub use reader::{DEFAULT_READ_CAPACITY, JsonlReader};
 pub use writer::{DEFAULT_FLUSH_THRESHOLD, JsonlWriter};

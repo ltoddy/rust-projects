@@ -1,6 +1,6 @@
 [package]
 name = "tokio-jsonl"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 rust-version = "1.85"
 description = "Buffered, append-oriented JSON Lines (jsonl) reading and writing for tokio, made by Aries"
@@ -11,14 +11,19 @@ homepage = "https://github.com/ltoddy/rust-projects/tree/main/crates/tokio-jsonl
 keywords = ["jsonl", "json-lines", "tokio", "async", "logging"]
 categories = ["asynchronous", "encoding", "filesystem"]
 
+[features]
+default = ["fs", "background"]
+fs = ["tokio/fs"]
+background = ["fs", "tokio/rt", "tokio/macros", "tokio/sync", "tokio/time"]
+
 [dependencies]
 bytes = "1"
 serde = "1"
 serde_json = "1"
 thiserror = "2"
-tokio = { version = "1", features = ["io-util", "fs", "sync", "time", "rt", "macros"] }
-tokio-stream = "0.1"
-tokio-util = { version = "0.7", features = ["codec"] }
+tokio = { version = "1", default-features = false, features = ["io-util"] }
+tokio-stream = { version = "0.1", default-features = false }
+tokio-util = { version = "0.7", default-features = false, features = ["codec"] }
 
 [dev-dependencies]
 divan = "0.1"
@@ -29,6 +34,11 @@ tokio = { version = "1", features = ["macros", "rt-multi-thread", "io-util", "fs
 [[bench]]
 name = "throughput"
 harness = false
+required-features = ["fs", "background"]
+
+[[test]]
+name = "jsonl"
+required-features = ["fs", "background"]
 
 [lints.rust]
 unsafe_code = "forbid"
