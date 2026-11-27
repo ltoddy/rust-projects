@@ -1,0 +1,29 @@
+[package]
+name = "tokstat"
+version = "0.1.1"
+edition = "2024"
+rust-version = "1.88"
+description = "统计目录下文本文件经 tokenizer 处理后的 token 量"
+license = "MIT"
+repository = "https://github.com/ltoddy/tokstat"
+readme = "README.md"
+keywords = ["tokenizer", "token", "llm", "cloc"]
+categories = ["command-line-utilities", "development-tools"]
+exclude = ["AGENTS.md"]
+
+[dependencies]
+clap = { version = "4.6", default-features = false, features = ["std", "help", "usage", "error-context", "derive"] }
+crossbeam-channel = "0.5"
+ignore = "0.4"
+indicatif = { version = "0.18", default-features = false, features = ["unicode-width"] }
+memchr = "2.8"
+thiserror = "2.0"
+tokenizers = { version = "0.23", default-features = false, features = ["onig"] }
+
+[profile.dev]
+debug = 0
+
+[profile.release]
+lto = true
+codegen-units = 1
+panic = "abort"
