@@ -1,12 +1,13 @@
 [package]
 name = "tokio-jsonl"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2024"
 description = "Buffered, append-oriented JSON Lines (jsonl) reading and writing for tokio, made by Aries"
-authors = ["liutao.rs <taoliu0509@gmail.com>"]
-license = "MIT"
-repository = "https://github.com/ltoddy/rust-projects"
+readme = "README.md"
 homepage = "https://github.com/ltoddy/rust-projects/tree/main/crates/tokio-jsonl"
+repository = "https://github.com/ltoddy/rust-projects"
+license = "MIT"
+authors = ["liutao.rs <taoliu0509@gmail.com>"]
 keywords = ["jsonl", "json-lines", "tokio", "async", "logging"]
 categories = ["asynchronous", "encoding", "filesystem"]
 

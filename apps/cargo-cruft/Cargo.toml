@@ -1,8 +1,18 @@
 [package]
 name = "cargo-cruft"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 description = "Remove artifacts from a Cargo target directory that no build will use again"
+readme = "README.md"
+homepage = "https://github.com/ltoddy/rust-projects/tree/main/apps/cargo-cruft"
+repository = "https://github.com/ltoddy/rust-projects"
 license = "MIT"
+keywords = ["cargo", "target", "clean", "disk-space", "build-artifacts"]
+categories = ["development-tools::cargo-plugins", "command-line-utilities"]
 
 [dependencies]
+anyhow = "1"
+indicatif = { version = "0.18", default-features = false }
+semver = "1"
+toml = { version = "1.2", default-features = false, features = ["std", "parse", "serde"] }
+walkdir = "2"
