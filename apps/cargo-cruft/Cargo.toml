@@ -1,0 +1,8 @@
+[package]
+name = "cargo-cruft"
+version = "0.1.0"
+edition = "2024"
+description = "Remove artifacts from a Cargo target directory that no build will use again"
+license = "MIT"
+
+[dependencies]

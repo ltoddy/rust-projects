@@ -2,7 +2,6 @@
 name = "tokio-jsonl"
 version = "0.1.1"
 edition = "2024"
-rust-version = "1.85"
 description = "Buffered, append-oriented JSON Lines (jsonl) reading and writing for tokio, made by Aries"
 authors = ["liutao.rs <taoliu0509@gmail.com>"]
 license = "MIT"
