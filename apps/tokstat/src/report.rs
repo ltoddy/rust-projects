@@ -79,11 +79,7 @@ pub struct ScanResult {
 
 impl ScanResult {
     pub fn new(stats: Vec<Stat>, skipped: usize, dir_errors: usize) -> Self {
-        Self {
-            stats,
-            skipped,
-            dir_errors,
-        }
+        Self { stats, skipped, dir_errors }
     }
 
     pub fn absorb(&mut self, stats: Vec<Stat>, skipped: usize) {
@@ -139,11 +135,7 @@ impl Report {
             .iter()
             .take(shown)
             .map(|stat| {
-                Row::new(
-                    stat.relative_to(&self.root),
-                    stat.tokens(),
-                    stat.tokens().share_of(total),
-                )
+                Row::new(stat.relative_to(&self.root), stat.tokens(), stat.tokens().share_of(total))
             })
             .collect::<Vec<_>>();
 
@@ -202,10 +194,6 @@ struct Row {
 
 impl Row {
     fn new(name: String, tokens: Tokens, share: f64) -> Self {
-        Self {
-            name,
-            tokens,
-            share,
-        }
+        Self { name, tokens, share }
     }
 }
