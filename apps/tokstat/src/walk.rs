@@ -14,9 +14,7 @@ impl Walker {
     const THREADS: usize = 2;
 
     pub fn new(path: impl AsRef<Path>) -> Self {
-        let inner = WalkBuilder::new(path)
-            .threads(Self::THREADS)
-            .build_parallel();
+        let inner = WalkBuilder::new(path).threads(Self::THREADS).build_parallel();
         let (tx, rx) = bounded(256);
 
         Self { inner, tx, rx }
@@ -38,10 +36,7 @@ impl Walker {
                     return WalkState::Continue;
                 };
 
-                if !entry
-                    .file_type()
-                    .is_some_and(|file_type| file_type.is_file())
-                {
+                if !entry.file_type().is_some_and(|file_type| file_type.is_file()) {
                     return WalkState::Continue;
                 }
 
