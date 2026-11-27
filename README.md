@@ -1,109 +1,106 @@
-# rcloc (cloc-rs)
+# rcloc
 
-Count, or compute differences of, lines of source code and comments fastly.
+统计目录下各语言的代码行、注释行与空行，类似 cloc。用 Rust 实现，多线程并行读取文件。
 
-## Overview
+## 输出
 
-![](https://img.vim-cn.com/1b/5f012cb8f2e45001ae20d18310ec0da474fff3.jpg)
-
-### Requirements
-
-- Rust 1.88 or newer (2024 edition)
-
-### Usage
-
-e.g.
-
-```
-macbox :: github/kubernetes » time rcloc .
-     72.5313 secs
-┌───────────────────────────────────────────────────────────────────────────────────────┐
-│ Language                        files        size       blank     comment        code │
-├───────────────────────────────────────────────────────────────────────────────────────┤
-│ Autoconf                          533   515.91 KB         100         992       21399 │
-│ Bash                              148   420.09 KB        1183         592       10153 │
-│ C                                 149   149.31 KB         970        1671        3065 │
-│ C Header                           25     6.94 MB        9975      109175       20975 │
-│ GNU Style Assembly               2946     8.96 MB       48895       43894      285473 │
-│ Go                             463514     4.44 GB    13873486    22200757   106047029 │
-│ Html                               50    950.00 B           0           0          50 │
-│ Ini                                24     5.70 KB          48           0         240 │
-│ JSON                            21759  1011.18 MB         100           0    23771190 │
-│ Lua                                25   419.92 KB         750         100       11875 │
-│ Markdown                        18270   162.09 MB      530001           0     1794019 │
-│ Plain Text                       1161     5.50 MB        7186           0      176276 │
-│ PowerShell                        174     2.92 MB        8947       74817        1149 │
-│ Protocol Buffer                  4489    51.42 MB      220374      684092      425720 │
-│ Python                            175   581.23 KB        2975        5500        8750 │
-│ SVG                               101     1.22 MB         101         101        9532 │
-│ Shell                            9470    56.70 MB      189547      361195      998808 │
-│ Toml                              299   342.58 KB        3667        4325        7223 │
-│ Yaml                            38405   140.98 MB       31308       31043     5317632 │
-├───────────────────────────────────────────────────────────────────────────────────────┤
-│ Sum                            561717     5.86 GB    14929613    23518254   138910558 │
-└───────────────────────────────────────────────────────────────────────────────────────┘
-rcloc .  23.21s user 153.47s system 239% cpu 1:13.72 total
+```console
+$ rcloc ~/github/ltoddy/aries
+LANGUAGE         FILES     SIZE  BLANK  COMMENT    CODE   SHARE
+Rust               464   1.9 MB  5,207      230  50,902   97.4%
+Markdown            44  50.1 KB    279        0     677    1.3%
+Toml                17  13.3 KB     32        0     484    0.9%
+Python               1   5.6 KB     41       50     124    0.2%
+Protocol Buffer      1   1.2 KB     12        0      47    0.1%
+Shell                1   2.1 KB     12        1      36    0.1%
+---------------------------------------------------------------
+Total              528   2.0 MB  5,583      281  52,270  100.0%
+528 files, 0 skipped
 ```
 
-### Options
+结果固定按 `CODE` 降序（同值按名称升序），默认只展示前 20 行，`--top 0` 展示全部。`SHARE` 是该行 `CODE` 占全部 `CODE` 的比例。总计行给出文件数与被跳过的文件数。
 
-```
-$ rcloc --help
-Count, or compute differences of, lines of source code and comments.
+`--by-file` 按文件统计，路径相对传入的目录：
 
-Usage: rcloc [OPTIONS] [path]
-
-Arguments:
-  [path]  Directory to analyse, defaults to the current directory
-
-Options:
-      --output <OUTPUT>            Format of the report [default: terminal] [possible values: terminal, markdown]
-      --sort-by <SORT_BY>          Field used to sort the report [default: language] [possible values: language, files, size, blank, comment, code]
-      --order-by <ORDER_BY>        Sort direction of the report [default: asc] [possible values: asc, desc]
-      --ignore-file <IGNORE_FILE>  File listing paths (one per line) to exclude from the report
-  -h, --help                       Print help
-  -V, --version                    Print version
+```console
+$ rcloc --by-file --top 4 ~/github/ltoddy/aries/crates/aries-runtime/src
+FILE                     SIZE  BLANK  COMMENT    CODE   SHARE
+tools/grep/tests.rs   27.0 KB     82        0     645    6.0%
+tools/task.rs         20.0 KB     82        2     545    5.1%
+session/hook.rs       11.1 KB     33        0     279    2.6%
+tools/read/tests.rs   10.6 KB     45        6     272    2.5%
+… 还有 169 行
+-------------------------------------------------------------
+Total                400.2 KB  1,833       41  10,694  100.0%
+173 files, 0 skipped
 ```
 
-Markdown 报告:
+## 安装
 
-```
-$ rcloc --output markdown .
-```
-
-### Install
-
-```
+```console
 $ cargo install rcloc
 ```
 
-or
+从源码构建：
 
-```
-$ git clone https://github.com/ltoddy/cloc-rs.git
+```console
+$ git clone https://github.com/ltoddy/cloc-rs
+$ cd cloc-rs
 $ cargo install --path .
 ```
 
-### How to contribute(support for more language)
+## 用法
 
-- 在`src/calculator.rs`文件中, 有一个 `static MANAGER: LazyLock<Manager>` 全局变量, 内部有一个宏
+```
+Usage: rcloc [OPTIONS] [PATH]
 
-> language!($name, $ext, $single, $multi)
+Arguments:
+  [PATH]  要统计的目录或文件，缺省为当前工作目录
 
-参数解释:
+Options:
+      --top <N>  最多展示的行数，0 表示全部 [default: 20]
+      --by-file  按文件统计，而不是按语言
+  -h, --help     Print help
+  -V, --version  Print version
+```
 
-- 第一个参数: 语言的名字
-- 第二个参数: 这个语言文件的文件后缀
-- 第三个参数: 这个语言的单行注释(没有就不填)
-- 第四个参数: 这个语言的多行注释(没有就不填)
+## 统计范围
 
-### TODO
+遍历使用 [ignore](https://docs.rs/ignore)，行为与 ripgrep 一致：
 
-- [x] 统计结果可以生成Markdown文件(由参数--output=markdown 指定)
-- [ ] 去除代码中使用的`unwrap()`
-- [ ] 去除代码中的expect, 更细粒度的错误处理
-- [ ] 美化输出
-- [x] 完善测试(核心计数逻辑已有单元测试)
-- [ ] 完善文档
-- [ ] 压榨性能
-- [ ] ...
+- 尊重 `.gitignore`、`.ignore`、`.git/info/exclude` 与全局 gitignore
+- 跳过隐藏文件与目录
+- 不跟随符号链接
+
+以上行为都不可配置，与 tokstat、ripgrep 的默认行为一致。要统计被忽略或隐藏的目录/文件，直接把路径作为 `PATH` 传入即可——根路径本身不参与过滤，例如 `rcloc node_modules`、`rcloc .config`。
+
+语言按扩展名识别，目前支持 117 种（见 `src/count.rs` 里的 `Languages::new`）。扩展名未知的文件不参与统计，也不计入 `skipped`。
+
+`skipped` 只统计「本该能统计却失败了」的文件：
+
+- 二进制文件（前 1024 字节含 NUL，或以 `%PDF`、`\x89PNG` 开头）
+- 非 UTF-8 编码的文件
+- 读取失败的文件
+
+读不了的目录计入 `dir errors`，只在非零时展示。
+
+## 注释识别
+
+每种语言可以配置单行注释符与多行注释符（`language!(语言, 扩展名, 单行, 多行)`）。判定顺序是：空行 → 单行注释 → 多行注释 → 代码。
+
+- 一行里既有代码又有注释（如 `let a = 1; // 说明`）算作代码。
+- 多行注释内部的行算注释，其中的空行仍算空行。
+- 单行注释符做前缀匹配，所以 `//` 也会命中 `///` 与 `///!`；Rust 里显式列了三种写法，顺序在前者优先。
+
+## 性能
+
+遍历与统计分离：2 个遍历线程只产出路径，经有界 channel（容量 256）交给 N 个 worker 并行统计，N 为逻辑核数。上面 528 个文件的示例约 0.04 秒。
+
+## 与 cloc 的差异
+
+- 只做行数统计，不提供 cloc 的 `--diff`（两份目录的差异比较）。
+- 注释识别基于扩展名对应的注释符表，不做语法解析，`.h` 之类归属固定的语言。
+
+## 许可
+
+MIT

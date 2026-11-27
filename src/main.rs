@@ -1,57 +1,44 @@
-mod calculator;
-mod engine;
-mod executor;
-mod explorer;
-mod options;
-mod pretty_printer;
-mod reporter;
-mod spinner;
-mod util;
+mod args;
+mod content;
+mod count;
+mod error;
+mod progress;
+mod report;
+mod scan;
+mod walk;
 
-use std::env::current_dir;
-use std::fs;
-use std::time::Instant;
+use std::thread;
 
 use clap::Parser;
 
-use crate::engine::Engine;
-use crate::options::{Options, Output, SortBy};
-use crate::pretty_printer::{pretty_print, print_markdown};
-use crate::util::compare;
+use crate::args::Args;
+use crate::error::Error;
+use crate::progress::Progress;
+use crate::report::Report;
+use crate::scan::Scanner;
+use crate::walk::Walker;
 
 #[global_allocator]
 static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
 
-fn main() {
-    let now = Instant::now();
-    let options = Options::parse();
+fn main() -> Result<(), Error> {
+    let args = Args::parse();
+    let root = args.path();
 
-    let entry = options.entry.and_then(|entry| fs::canonicalize(entry).ok()).unwrap_or_else(|| {
-        eprintln!("No directory specified, so use current directory as entry.\n");
-        current_dir().expect("current directory does not exist")
-    });
-
-    let engine = Engine::new(entry, options.ignore_file);
-    let mut report = engine.serve();
-
-    report.sections.sort_by(|prev, next| {
-        let ordering = match options.sort_by {
-            SortBy::Language => compare(prev.language, next.language, options.order_by),
-            SortBy::Files => compare(prev.files, next.files, options.order_by),
-            SortBy::Size => compare(prev.bytes, next.bytes, options.order_by),
-            SortBy::Blank => compare(prev.blank, next.blank, options.order_by),
-            SortBy::Comment => compare(prev.comment, next.comment, options.order_by),
-            SortBy::Code => compare(prev.code, next.code, options.order_by),
-        };
-
-        // Keep the report stable when the sorted fields are equal.
-        ordering.then_with(|| prev.language.cmp(next.language))
-    });
-
-    let elapsed = now.elapsed();
-
-    match options.output {
-        Output::Terminal => pretty_print(&report, elapsed),
-        Output::Markdown => print_markdown(&report, elapsed),
+    if !root.exists() {
+        return Err(Error::missing(&root));
     }
+
+    let threads = thread::available_parallelism().map_or(1, |count| count.get());
+    let progress = Progress::new()?;
+    let scanner = Scanner::new(threads);
+    let walker = Walker::new(&root);
+
+    let scan = scanner.scan(walker, &progress)?;
+
+    progress.finish(scan.files());
+
+    Report::new(root, scan).render(&args);
+
+    Ok(())
 }

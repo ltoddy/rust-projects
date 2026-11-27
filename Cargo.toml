@@ -1,34 +1,33 @@
 [package]
 name = "rcloc"
-version = "0.7.0"
+version = "0.8.0"
 authors = ["ltoddy <taoliu0509@gmail.com>"]
 edition = "2024"
 rust-version = "1.88"
 license = "MIT"
 readme = "README.md"
-keywords = ["cloc", "rcloc"]
+keywords = ["cloc", "tokei", "lines-of-code", "statistics", "cli"]
 categories = ["command-line-utilities", "development-tools"]
-description = "Count, or compute differences of, lines of source code and comments."
+description = "统计目录下各语言的代码行、注释行与空行，类似 cloc"
 repository = "https://github.com/ltoddy/cloc-rs"
-
-include = [
-    "src/**/*.rs",
-    "Cargo.toml",
-    "LICENSE",
-    "README.md"
-]
 
 [dependencies]
 clap = { version = "4.6", features = ["derive"] }
+crossbeam-channel = "0.5"
+ignore = "0.4"
+indicatif = { version = "0.18", default-features = false, features = ["unicode-width"] }
 mimalloc = "0.1.52"
+thiserror = "2.0"
 
 [lints.clippy]
 all = "warn"
 
-[profile.release]
-opt-level = "z"
-lto = true
-panic = "abort"
-codegen-units = 1
-strip = true
+[profile.dev]
+debug = 0
 
+[profile.release]
+lto = true
+codegen-units = 1
+opt-level = "z"
+strip = true
+panic = "abort"
